@@ -32,25 +32,25 @@ import java.util.Objects;
 /**
  * Created by saroskar on 3/16/16.
  */
-public final class NettyClientConnectionFactory {
+public class NettyClientConnectionFactory {
 
     private final ConnectionPoolConfig connPoolConfig;
     private final ChannelInitializer<? extends Channel> channelInitializer;
 
-    NettyClientConnectionFactory(
-            final ConnectionPoolConfig connPoolConfig, final ChannelInitializer<? extends Channel> channelInitializer) {
+    public NettyClientConnectionFactory(
+            ConnectionPoolConfig connPoolConfig, ChannelInitializer<? extends Channel> channelInitializer) {
         this.connPoolConfig = connPoolConfig;
         this.channelInitializer = channelInitializer;
     }
 
     public ChannelFuture connect(
-            final EventLoop eventLoop, SocketAddress socketAddress, CurrentPassport passport, IConnectionPool pool) {
+            EventLoop eventLoop, SocketAddress socketAddress, CurrentPassport passport, IConnectionPool pool) {
         Objects.requireNonNull(socketAddress, "socketAddress");
         if (socketAddress instanceof InetSocketAddress) {
             // This should be checked by the ClientConnectionManager
             assert !((InetSocketAddress) socketAddress).isUnresolved() : socketAddress;
         }
-        final Bootstrap bootstrap = new Bootstrap()
+        Bootstrap bootstrap = new Bootstrap()
                 .channel(Server.defaultOutboundChannelType.get())
                 .handler(channelInitializer)
                 .group(eventLoop)

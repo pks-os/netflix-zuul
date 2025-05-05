@@ -39,6 +39,7 @@ import io.netty.util.AttributeKey;
 import java.nio.channels.ClosedChannelException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.net.ssl.SSLException;
@@ -104,10 +105,12 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
                         serverCert = session.getLocalCertificates()[0];
                     }
 
-                    //if attribute is true, then true. If null or false then false
-                    boolean tlsHandshakeUsingExternalPSK = Boolean.TRUE.equals(ctx.channel()
-                            .attr(ZuulPskServer.TLS_HANDSHAKE_USING_EXTERNAL_PSK)
-                            .get());
+                    // if attribute is true, then true. If null or false then false
+                    boolean tlsHandshakeUsingExternalPSK = Objects.equals(
+                            ctx.channel()
+                                    .attr(ZuulPskServer.TLS_HANDSHAKE_USING_EXTERNAL_PSK)
+                                    .get(),
+                            Boolean.TRUE);
 
                     ClientPSKIdentityInfo clientPSKIdentityInfo = ctx.channel()
                             .attr(TlsPskHandler.CLIENT_PSK_IDENTITY_ATTRIBUTE_KEY)
@@ -137,8 +140,8 @@ public class SslHandshakeInfoHandler extends ChannelInboundHandlerAdapter {
                     PassportState passportState =
                             CurrentPassport.fromChannel(ctx.channel()).getState();
                     if (cause instanceof ClosedChannelException
-                            && (PassportState.SERVER_CH_INACTIVE.equals(passportState)
-                            || PassportState.SERVER_CH_IDLE_TIMEOUT.equals(passportState))) {
+                            && (passportState == PassportState.SERVER_CH_INACTIVE
+                                    || passportState == PassportState.SERVER_CH_IDLE_TIMEOUT)) {
                         // Either client closed the connection without/before having completed a handshake, or
                         // the connection idle timed-out before handshake.
                         // NOTE: we were seeing a lot of these in prod and can repro by just telnetting to port and then
